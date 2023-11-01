@@ -28,18 +28,9 @@ app.get('/testimonials/:id', (req, res) => {
 
 
 app.get('/testimonials/random', (req, res) => {
-    console.log("Received a request for /testimonials/random");
     const randomIndex = Math.floor(Math.random() * db.length);
-    console.log("Random index:", randomIndex);
-
     const randomTestimonial = db[randomIndex];
-    console.log("Random testimonial:", randomTestimonial);
-
-    if (randomTestimonial) {
-        res.json(randomTestimonial);
-    } else {
-        res.status(404).json({ message: 'Testimonial not found' });
-    }
+    res.json(randomTestimonial);
 });
 
 app.put('/testimonials/:id', (req, res) => {
