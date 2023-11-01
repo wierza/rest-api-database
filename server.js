@@ -1,24 +1,27 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
-const path = require('path')
+const cors = require('cors');
+const db = require('./db')
 
 
 const app = express();
+
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-
-const db = [
-    { id: 1, author: 'John Doe', text: 'This company is worth every coin!' },
-    { id: 2, author: 'Amanda Doe', text: 'They really know how to make you happy.' },
-    { id: 3, author: 'Some Author', text: 'Some testimonial text.' },
-];
+app.use(cors());
 
 app.get('/testimonials', (req, res) => {
-    res.json(db);
+    res.json(db.testimonials);
+});
+
+app.get('/testimonials/random', (req, res) => {
+    const randomIndex = Math.floor(Math.random() * db.testimonials.length);
+    const randomTestimonial = db.testimonials[randomIndex];
+    res.json(randomTestimonial);
 });
 
 app.get('/testimonials/:id', (req, res) => {
-    const testimonial = db.find(entry => entry.id === parseInt(req.params.id));
+    const testimonial = db.testimonials.find(entry => entry.id === parseInt(req.params.id));
     if (testimonial) {
         res.json(testimonial);
     } else {
@@ -26,16 +29,24 @@ app.get('/testimonials/:id', (req, res) => {
     }
 });
 
-
-app.get('/testimonials/random', (req, res) => {
-    const randomIndex = Math.floor(Math.random() * db.length);
-    const randomTestimonial = db[randomIndex];
-    res.json(randomTestimonial);
+app.post('/testimonials', (req, res) => {
+    const { author, text } = req.body;
+    if (!author || !text) {
+        res.status(400).json({ message: 'Author and text are required' });
+    } else {
+        const newTestimonial = {
+            id: uuidv4(),
+            author,
+            text,
+        };
+        db.testimonials.push(newTestimonial);
+        res.json({ message: 'OK' });
+    }
 });
 
 app.put('/testimonials/:id', (req, res) => {
     const { author, text } = req.body;
-    const testimonial = db.find(entry => entry.id === parseInt(req.params.id));
+    const testimonial = db.testimonials.find(entry => entry.id === parseInt(req.params.id));
     if (!testimonial) {
         res.status(404).json({ message: 'Testimonial not found' });
     } else {
@@ -46,11 +57,11 @@ app.put('/testimonials/:id', (req, res) => {
 });
 
 app.delete('/testimonials/:id', (req, res) => {
-    const index = db.findIndex(entry => entry.id === parseInt(req.params.id));
+    const index = db.testimonials.findIndex(entry => entry.id === parseInt(req.params.id));
     if (index === -1) {
         res.status(404).json({ message: 'Testimonial not found' });
     } else {
-        db.splice(index, 1);
+        db.testimonials.splice(index, 1);
         res.json({ message: 'OK' });
     }
 });
