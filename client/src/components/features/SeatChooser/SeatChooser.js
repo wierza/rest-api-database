@@ -1,25 +1,29 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button, Progress, Alert } from 'reactstrap';
-import { getSeats, loadSeatsRequest, getRequests } from '../../../redux/seatsRedux';
+import { getSeats, loadSeatsRequest, getRequests, loadSeats } from '../../../redux/seatsRedux';
 import './SeatChooser.scss';
+import io from 'socket.io-client';
 
 const SeatChooser = ({ chosenDay, chosenSeat, updateSeat }) => {
   const dispatch = useDispatch();
   const seats = useSelector(getSeats);
   const requests = useSelector(getRequests);
+  const [socket, setSocket] = useState(null)
   
   useEffect(() => {
-    dispatch(loadSeatsRequest());
+    dispatch(loadSeatsRequest())
 
-    let interval;
+		const socket = io(process.env.NODE_ENV === 'production' ? '' : 'ws://localhost:8000', {
+			transports: ['websocket'],
+		})
+		setSocket(socket)
+		socket.on('seatsUpdated', seats => dispatch(loadSeats(seats)))
 
-    interval = setInterval(() => {
-      dispatch(loadSeatsRequest());
-    }, 120000);
-
-    return () => clearInterval(interval)
-  }, [dispatch, chosenSeat])
+		return () => {
+			socket.disconnect()
+		}
+	}, [dispatch])
 
   const isTaken = (seatId) => {
     return (seats.some(item => (item.seat === seatId && item.day === chosenDay)));
@@ -31,6 +35,19 @@ const SeatChooser = ({ chosenDay, chosenSeat, updateSeat }) => {
     else return <Button key={seatId} color="primary" className="seats__seat" outline onClick={(e) => updateSeat(e, seatId)}>{seatId}</Button>;
   }
 
+  const freeSeatsNumber = () => {
+		let total = 50
+		let seatsTaken = []
+		for (let seat of seats) {
+			if (seat.day === chosenDay) {
+				seatsTaken.push(seat)
+			}
+		}
+
+		const freeSeats = total - seatsTaken.length
+		return freeSeats
+	}
+
   return (
     <div>
       <h3>Pick a seat</h3>
@@ -41,6 +58,7 @@ const SeatChooser = ({ chosenDay, chosenSeat, updateSeat }) => {
       { (requests['LOAD_SEATS'] && requests['LOAD_SEATS'].success) && <div className="seats">{[...Array(50)].map((x, i) => prepareSeat(i+1) )}</div>}
       { (requests['LOAD_SEATS'] && requests['LOAD_SEATS'].pending) && <Progress animated color="primary" value={50} /> }
       { (requests['LOAD_SEATS'] && requests['LOAD_SEATS'].error) && <Alert color="warning">Couldn't load seats...</Alert> }
+      <p>Free seats: {freeSeatsNumber()} out of 50</p>
     </div>
   )
 }

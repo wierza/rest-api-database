@@ -1,4 +1,5 @@
 const express = require('express');
+const { Socket } = require('socket.io')
 const router = express.Router();
 const db = require('../db');
 const { v4: uuidv4 } = require('uuid');
@@ -43,6 +44,7 @@ router.route('/seats').post((req, res) => {
             email,
         };
         db.seats.push(newSeat);
+        req.io.emit('seatsUpdated', db.seats)
         res.json({ message: 'OK' });
     }
 });
