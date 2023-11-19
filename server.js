@@ -1,13 +1,13 @@
 const express = require('express');
 const cors = require('cors');
-const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const socket = require('socket.io');
 const mongoose = require('mongoose');
 
 const app = express();
 
-mongoose.connect('mongodb://127.0.0.1:27017/NewWaveDB', { useNewUrlParser: true });
+const uri = 'mongodb+srv://davidwierzycki:IZfcDnJmaCuQRAFJ@wierza.cd9ozgu.mongodb.net/NewWaveDB?retryWrites=true&w=majority'
+mongoose.connect(uri, { useNewUrlParser: true });
 const db = mongoose.connection;
 
 db.once('open', () => {
