@@ -10,7 +10,7 @@ const app = express();
 const NODE_ENV = process.env.NODE_ENV;
 let dbUri = '';
 
-if (NODE_ENV === 'production') dbUri = 'url to remote db';
+if (NODE_ENV === 'production') dbUri = `mongodb+srv://davidwierzycki:${process.env.DB_PASS}@wierza.cd9ozgu.mongodb.net/NewWaveDB?retryWrites=true&w=majority`;
 else if (NODE_ENV === 'test') dbUri = 'mongodb://127.0.0.1:27017/companyDBtest';
 else dbUri = `mongodb+srv://davidwierzycki:${process.env.DB_PASS}@wierza.cd9ozgu.mongodb.net/NewWaveDB?retryWrites=true&w=majority`
 mongoose.connect(dbUri, { useNewUrlParser: true });
