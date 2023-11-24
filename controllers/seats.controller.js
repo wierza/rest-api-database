@@ -1,4 +1,5 @@
 const Seat = require('../models/seats.model');
+const sanitize = require('mongo-sanitize');
 
 exports.getAll = async (req, res) => {
     try {
@@ -35,7 +36,11 @@ exports.getById = async (req, res) => {
 
 exports.addSeat = async (req, res) => {
     try {
-        const { day, seat, client, email } = req.body;
+        const day = sanitize(req.body.day);
+        const seat = sanitize(req.body.seat);
+        const client = sanitize(req.body.client);
+        const email = sanitize(req.body.email);
+        
         if (!day || !seat || !client || !email) {
             return res.status(400).json({ error: 'One or more mandatory fields omitted.' });
         }
